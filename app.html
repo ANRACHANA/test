@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="km">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Invoice ទឹក-ភ្លើង with Firebase Firestore</title>
+
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+
+  <style>
+    body { font-family: 'Khmer OS Battambang', sans-serif; margin: 10px; background: #f5f7fa; max-width: 700px; margin-left: auto; margin-right: auto;}
+    label, input, select, button { width: 100%; margin-top: 10px; font-size: 16px; }
+    input, select { padding: 8px; border-radius: 6px; border: 1.5px solid #ccc; box-sizing: border-box; }
+    button { padding: 12px; background: #1e88e5; color: white; border: none; border-radius: 8px; cursor: pointer; margin-top: 20px; font-size: 16px; }
+    button:hover { background: #1565c0; }
+    table { width: 100%; margin-top: 20px; border-collapse: collapse; font-size: 14px; }
+    th, td { padding: 8px; border: 1px solid #ccc; text-align: center; }
+    th { background: #1e88e5; color: white; }
+  </style>
+</head>
+<body>
+
+<h2>Invoice ទឹក-ភ្លើង</h2>
+
+<label>តម្លៃទឹក (រៀល/យូនីត)</label>
+<input type="number" id="water-price" value="3000" />
+
+<label>តម្លៃភ្លើង (រៀល/គីឡូវ៉ាត់)</label>
+<input type="number" id="electric-price" value="4000" />
+
+<label>បន្ទប់</label>
+<select id="room">
+  <option value="">-- ជ្រើសបន្ទប់ --</option>
+  <option value="1">បន្ទប់ ១</option>
+  <option value="2">បន្ទប់ ២</option>
+  <option value="3">បន្ទប់ ៣</option>
+  <option value="4">បន្ទប់ ៤</option>
+</select>
+
+<label>ខែ</label>
+<input type="month" id="month" />
+
+<label>ឈ្មោះអតិថិជន</label>
+<input type="text" id="customer-name" placeholder="បញ្ចូលឈ្មោះអតិថិជន" />
+
+<label>លេខទូរស័ព្ទ</label>
+<input type="tel" id="customer-phone" placeholder="បញ្ចូលលេខទូរស័ព្ទ" />
+
+<label>ទឹកចាស់</label>
+<input type="number" id="water-old" />
+<label>ទឹកថ្មី</label>
+<input type="number" id="water-new" />
+<label>ភ្លើងចាស់</label>
+<input type="number" id="electric-old" />
+<label>ភ្លើងថ្មី</label>
+<input type="number" id="electric-new" />
+
+<button onclick="saveData()">រក្សាទុក</button>
+
+<h3>ទិន្នន័យវិក្កយបត្រ</h3>
+<label>បង្ហាញតែបន្ទប់:</label>
+<select id="filter-room" onchange="loadData()">
+  <option value="">-- បង្ហាញទាំងអស់ --</option>
+  <option value="1">បន្ទប់ ១</option>
+  <option value="2">បន្ទប់ ២</option>
+  <option value="3">បន្ទប់ ៣</option>
+  <option value="4">បន្ទប់ ៤</option>
+</select>
+
+<table>
+  <thead>
+    <tr><th>បន្ទប់</th><th>ខែ</th><th>អតិថិជន</th><th>លេខទូរស័ព្ទ</th><th>លេខវិក្កយបត្រ</th></tr>
+  </thead>
+  <tbody id="data-tbody"></tbody>
+</table>
+
+<script>
+  // Your Firebase config here
+  const firebaseConfig = {
+    apiKey: "AIzaSyBt_ScEi_StJ0wQDP-gZwMWmy5A7HqEcXE",
+    authDomain: "invoice-77616.firebaseapp.com",
+    projectId: "invoice-77616",
+    storageBucket: "invoice-77616.appspot.com",
+    messagingSenderId: "91579214593",
+    appId: "1:91579214593:web:eca7aad598915de58ec900",
+    measurementId: "G-99K8KQ02M0"
+  };
+
+  // Initialize Firebase
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.firestore();
+
+  function generateInvoiceNumber(room, month) {
+    const ym = month.replace('-', '');
+    const randomSuffix = Math.floor(Math.random() * 900 + 100); // random 3 digit
+    return `INV-${ym}-${room}-${randomSuffix}`;
+  }
+
+  async function saveData() {
+    const room = document.getElementById('room').value;
+    const month = document.getElementById('month').value;
+    const waterOld = parseInt(document.getElementById('water-old').value);
+    const waterNew = parseInt(document.getElementById('water-new').value);
+    const electricOld = parseInt(document.getElementById('electric-old').value);
+    const electricNew = parseInt(document.getElementById('electric-new').value);
+    const customerName = document.getElementById('customer-name').value.trim();
+    const customerPhone = document.getElementById('customer-phone').value.trim();
+
+    if (!room || !month || isNaN(waterOld) || isNaN(waterNew) || isNaN(electricOld) || isNaN(electricNew) || !customerName || !customerPhone) {
+      alert('សូមបំពេញទិន្នន័យទាំងអស់');
+      return;
+    }
+
+    const invoiceNo = generateInvoiceNumber(room, month);
+
+    try {
+      await db.collection('invoices').doc(invoiceNo).set({
+        room,
+        month,
+        waterOld,
+        waterNew,
+        electricOld,
+        electricNew,
+        customerName,
+        customerPhone,
+        invoiceNo,
+        timestamp: firebase.firestore.FieldValue.serverTimestamp()
+      });
+      alert('✅ បានរក្សាទុកទៅ Firebase!');
+      loadData();
+      clearForm();
+    } catch (error) {
+      alert('❌ កំហុស: ' + error.message);
+    }
+  }
+
+  async function loadData() {
+    const tbody = document.getElementById('data-tbody');
+    tbody.innerHTML = '';
+    const filterRoom = document.getElementById('filter-room').value;
+
+    let query = db.collection('invoices').orderBy('timestamp', 'desc');
+
+    if (filterRoom) {
+      query = query.where('room', '==', filterRoom);
+    }
+
+    try {
+      const snapshot = await query.get();
+      if (snapshot.empty) {
+        tbody.innerHTML = `<tr><td colspan="5">មិនមានទិន្នន័យ</td></tr>`;
+        return;
+      }
+
+      snapshot.forEach(doc => {
+        const d = doc.data();
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${d.room}</td>
+          <td>${d.month}</td>
+          <td>${d.customerName}</td>
+          <td>${d.customerPhone}</td>
+          <td>${d.invoiceNo}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    } catch (error) {
+      alert('❌ កំហុសក្នុងការទាញទិន្នន័យ: ' + error.message);
+    }
+  }
+
+  function clearForm() {
+    document.getElementById('room').value = '';
+    document.getElementById('month').value = '';
+    document.getElementById('water-old').value = '';
+    document.getElementById('water-new').value = '';
+    document.getElementById('electric-old').value = '';
+    document.getElementById('electric-new').value = '';
+    document.getElementById('customer-name').value = '';
+    document.getElementById('customer-phone').value = '';
+  }
+
+  window.onload = loadData;
+</script>
+
+</body>
+</html>
