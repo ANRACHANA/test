@@ -1,188 +1,1152 @@
 <!DOCTYPE html>
-<html lang="km">
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Invoice ទឹក-ភ្លើង with Firebase Firestore</title>
+  <title>Anrachana Banner Slide with Modern Navbar</title>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet" />
+ <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"/>
 
-  <!-- Firebase SDK -->
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
   <style>
-    body { font-family: 'Khmer OS Battambang', sans-serif; margin: 10px; background: #f5f7fa; max-width: 700px; margin-left: auto; margin-right: auto;}
-    label, input, select, button { width: 100%; margin-top: 10px; font-size: 16px; }
-    input, select { padding: 8px; border-radius: 6px; border: 1.5px solid #ccc; box-sizing: border-box; }
-    button { padding: 12px; background: #1e88e5; color: white; border: none; border-radius: 8px; cursor: pointer; margin-top: 20px; font-size: 16px; }
-    button:hover { background: #1565c0; }
-    table { width: 100%; margin-top: 20px; border-collapse: collapse; font-size: 14px; }
-    th, td { padding: 8px; border: 1px solid #ccc; text-align: center; }
-    th { background: #1e88e5; color: white; }
+    /* (ស្ទាយលក្ខណៈដូចដែលអ្នកផ្ដល់) */
+    * {
+      margin: 0; padding: 0; box-sizing: border-box;
+      font-family: 'Khmer OS Battambang', sans-serif;
+    }
+
+    body {
+      background-color: #f7f9fc;
+      color: #333;
+    }
+
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px;
+       
+      
+     
+    
+    }
+
+    /* Navbar */
+    .navbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background-color: #fff;
+      padding: 12px 25px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+      border-radius: 12px;
+      position: relative;
+      user-select: none;
+      z-index: 1100;
+    }
+
+    .logo {
+      font-size: 1.3rem;
+      font-weight: 700;
+      color: #2c3e50;
+      letter-spacing: 1.1px;
+      cursor: default;
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 30px;
+      align-items: center;
+      list-style: none;
+    }
+
+    .nav-links a {
+      text-decoration: none;
+      color: #2c3e50;
+      font-size: 1rem;
+      font-weight: 500;
+      padding-bottom: 5px;
+      border-bottom: 3px solid transparent;
+      transition: border-color 0.3s ease, color 0.3s ease;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    .nav-links a:hover,
+    .nav-links a:focus {
+      color: #3498db;
+      border-color: #3498db;
+      outline: none;
+    }
+
+    .menu-toggle {
+      display: none;
+      font-size: 2rem;
+      color: #2c3e50;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    /* Mobile menu style */
+    @media (max-width: 768px) {
+      .nav-links {
+        position: fixed;
+        top: 0;
+        right: -100%;
+        height: 100vh;
+        width: 70%;
+        background-color: white ;
+        flex-direction: column;
+        gap: 25px;
+        padding: 60px 30px;
+        box-shadow: -3px 0 8px rgba(0,0,0,0.1);
+        border-radius: 0 0 0 12px;
+        transition: right 0.3s ease;
+        z-index: 1100;
+      }
+      .nav-links.active {
+        right: 0;
+      }
+
+      .nav-links a {
+        font-size: 1.3rem;
+        border-bottom: none;
+      }
+
+      .menu-toggle {
+        display: block;
+      }
+    }
+
+    /* Overlay backdrop for mobile menu */
+    .overlay {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.5);
+      z-index: 1050;
+    }
+    .overlay.active {
+      display: block;
+    }
+
+    /* Banner */
+    .banner {
+      position: relative;
+      width: 100%;
+      height: 220px;
+      overflow: hidden;
+      margin-top: 20px;
+      border-radius: 10px;
+      user-select: none;
+    }
+
+    .banner-slide {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      opacity: 0;
+      transition: all 3s ease-in-out;
+    }
+
+    .banner-slide.active {
+      opacity: 1;
+      z-index: 1;
+    }
+
+    .slide1 {
+      animation: slideFromLeft 3s ease;
+    }
+
+    .slide2 {
+      animation: slideFromRight 3s ease;
+    }
+
+    .slide3 {
+      animation: zoomIn 3s ease;
+    }
+
+    .caption-overlay {
+      position: absolute;
+      bottom: 20px;
+      left: 20px;
+      color: white;
+      background: rgba(0, 0, 0, 0.45);
+      padding: 12px 18px;
+      border-radius: 8px;
+      max-width: 70%;
+      box-sizing: border-box;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.35);
+      user-select: none;
+    }
+
+    .caption-overlay h3 {
+      margin-bottom: 8px;
+      font-size: 1.1rem;
+      font-weight: 700;
+    }
+
+    .caption-overlay button {
+      background-color: #3498db;
+      border: none;
+      padding: 7px 14px;
+      color: white;
+      cursor: pointer;
+      border-radius: 6px;
+      font-size: 1rem;
+      transition: background-color 0.3s ease;
+    }
+
+    .caption-overlay button:hover,
+    .caption-overlay button:focus {
+      background-color: #2980b9;
+      outline: none;
+    }
+
+    /* Next / Prev Buttons */
+    .nav-buttons {
+      position: absolute;
+      top: 50%;
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      pointer-events: none;
+      transform: translateY(-50%);
+      padding: 0 10px;
+      box-sizing: border-box;
+      z-index: 10;
+    }
+
+    .nav-buttons button {
+      pointer-events: auto;
+      background-color: rgba(0,0,0,0.45);
+      border: none;
+      color: white;
+      font-size: 1.7rem;
+      padding: 8px 14px;
+      cursor: pointer;
+      border-radius: 50%;
+      transition: background-color 0.3s ease;
+      user-select: none;
+    }
+
+    .nav-buttons button:hover,
+    .nav-buttons button:focus {
+      background-color: rgba(0,0,0,0.75);
+      outline: none;
+    }
+
+    @keyframes slideFromLeft {
+      from {
+        transform: translateX(-100%);
+        opacity: 0;
+      }
+      to {
+        transform: translateX(0);
+        opacity: 1;
+      }
+    }
+
+    @keyframes slideFromRight {
+      from {
+        transform: translateX(100%);
+        opacity: 0;
+      }
+      to {
+        transform: translateX(0);
+        opacity: 1;
+      }
+    }
+
+    @keyframes zoomIn {
+      from {
+        transform: scale(0.8);
+        opacity: 0;
+      }
+      to {
+        transform: scale(1);
+        opacity: 1;
+      }
+    }
+
+    /* Content */
+    .content {
+      padding: 30px 10px;
+      text-align: center;
+    }
+
+    .content h1 {
+      font-size: 1.8rem;
+      color: #34495e;
+    }
+
+    .content p {
+      margin-top: 15px;
+      font-size: 1rem;
+      color: #666;
+    }
+
+    /* Product Scroll */
+    .product-scroll {
+      margin-top: 20px;
+      display: flex;
+      overflow-x: auto;
+      gap: 10px;
+      padding-bottom: 10px;
+      -webkit-overflow-scrolling: touch; /* smooth scroll on iOS */
+    }
+
+    .product-scroll::-webkit-scrollbar {
+      height: 6px;
+    }
+
+    .product-scroll::-webkit-scrollbar-thumb {
+      background-color: rgba(0,0,0,0.2);
+      border-radius: 3px;
+    }
+
+    .product-item {
+      flex: 0 0 auto;
+      width: 140px;
+      height: 100px;
+      border-radius: 10px;
+      overflow: hidden;
+      cursor: pointer;
+      position: relative;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      transition: transform 0.3s ease;
+      background-color: white;
+      user-select: none;
+    }
+
+    .product-item:hover,
+    .product-item:focus {
+      transform: scale(1.05);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      outline: none;
+    }
+
+    .product-item img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+      pointer-events: none;
+      user-select: none;
+    }
+    .product-info {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  z-index: 2;
+}
+
+.product-info button {
+  background-color: #ffffffcc;
+  border: none;
+  padding: 2px 4px;
+  border-radius: 4px;
+  font-size: 8px;
+  cursor: pointer;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+  white-space: nowrap;
+  transition: background-color 0.3s ease;
+}
+
+.product-info button:hover {
+  background-color: #ffd700;
+  color: black;
+}
+
+
+
+
+
+
+
+.containers {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 40px 20px;
+      gap: 20px;
+      max-width: 1200px;
+      margin: auto;
+      flex-wrap: wrap;
+    }
+
+    .text-panel {
+      flex: 1 1 300px;
+      background: #ffffff;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    }
+
+    .text-panel h1 {
+      font-size: 32px;
+      color: #2c3e50;
+      margin-bottom: 15px;
+    }
+
+    .text-panel p {
+      font-size: 18px;
+      color: #555;
+      margin-bottom: 20px;
+      line-height: 1.6;
+    }
+
+    .text-panel button {
+      padding: 10px 18px;
+      font-size: 16px;
+      margin-right: 10px;
+      border: none;
+      border-radius: 8px;
+      background: #1e90ff;
+      color: white;
+      cursor: pointer;
+      transition: background 0.3s ease;
+    }
+
+    .text-panel button:hover {
+      background: #0c6ddf;
+    }
+
+    .image-panel {
+      flex: 1 1 300px;
+      position: relative;
+    }
+
+    .image-panel img {
+      width: 100%;
+      border-radius: 12px;
+      display: block;
+    }
+
+    .overlay-text {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      background: rgba(0, 0, 0, 0.6);
+      color: white;
+      padding: 20px;
+      border-radius: 0 0 12px 12px;
+    }
+
+    .overlay-text h3 {
+      font-size: 22px;
+      margin: 0 0 5px;
+    }
+
+    .overlay-text p {
+      font-size: 14px;
+      margin: 0;
+    }
+
+    @media (max-width: 768px) {
+      .container {
+        flex-direction: column;
+        padding: 20px 15px;
+      }
+
+      .text-panel, .image-panel {
+        width: 100%;
+        padding: 20px;
+      }
+
+      .text-panel h1 {
+        font-size: 24px;
+      }
+
+      .text-panel p {
+        font-size: 16px;
+      }
+
+      .overlay-text h3 {
+        font-size: 18px;
+      }
+
+      .overlay-text p {
+        font-size: 13px;
+      }
+
+      .text-panel button {
+        font-size: 14px;
+        padding: 8px 14px;
+        margin-top: 10px;
+      }
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+ .image-container {
+      position: relative;
+      background-image: url('https://picsum.photos/id/1035/800/220');
+      background-size: cover;
+      background-position: center;
+     
+      width: 100%;
+      height: 220px;
+      padding: 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      overflow: hidden;
+    }
+
+    /* Overlay (darkness) */
+    .image-container::before {
+      content: "";
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background-color: rgba(0, 0, 0, 0.5); /* អ្នកអាចកែចំនួន opacity បាន */
+      z-index: 0;
+    }
+
+    /* Box style with width auto */
+    .text-box {
+      position: relative; /* relative so it’s above overlay */
+      background: white;
+      padding: 10px 15px;
+      border-radius: 10px;
+      max-width: 90vw; /* responsive */
+      width: auto;
+      white-space: nowrap;
+      box-sizing: border-box;
+      user-select: none;
+      
+      z-index: 1; /* above overlay */
+    }
+
+    /* Position left box */
+    .text-box-left {
+      align-self: flex-start;
+      margin-right: auto;
+    }
+
+    /* Position right boxes in column */
+    .right-boxes {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+      align-items: flex-end;
+      z-index: 1; /* above overlay */
+    }
+
+    .small-button {
+      margin-top: 8px;
+      background: #1e90ff;
+      border: none;
+      color: white;
+      padding: 5px 12px;
+      font-size: 0.9rem;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    @media (max-width: 768px) {
+      .image-container {
+        flex-direction: column;
+        height: auto;
+      }
+
+      .text-box-left, 
+      .right-boxes {
+        width: 100%;
+        white-space: normal; /* allow wrap on mobile */
+        
+      }
+
+      .right-boxes {
+        align-items: flex-start;
+        margin-top: 15px;
+       
+      }
+
+      .small-button {
+        font-size: 0.8rem;
+        padding: 12px 10px;
+      }
+    }
+
+
+
+
+
+ .banner-img {
+      width: 100%;
+      height: auto;
+      border-radius: 10px;
+      object-fit: cover;
+    }
+
+    .info-box {
+      background-color: white;
+      border-radius: 10px;
+      padding: 15px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+      display: flex;
+      align-items: center;
+      margin-bottom: 15px;
+    }
+
+    .info-box i {
+      font-size: 24px;
+      color: #0d6efd;
+      margin-right: 15px;
+    }
+
+    .price-buttons {
+      position: absolute;
+      top: 15px;
+      right: 15px;
+      display: flex;
+      gap: 10px;
+    }
+
+    .price-buttons .btn {
+      font-weight: bold;
+      border-radius: 20px;
+    }
+
+    .image-container {
+      position: relative;
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+ .containerss {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  padding: 20px;
+}
+
+.image-containerss {
+  flex: 1 1 40%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.image-containerss img {
+  max-width: 100%;
+  border-radius: 12px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+  transition: transform 0.4s ease;
+}
+
+.image-containerss img:hover {
+  transform: scale(1.05) rotate(1deg);
+  cursor: pointer;
+}
+
+.boxes {
+  flex: 1 1 55%;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.box {
+  display: flex;
+  align-items: center;
+  background: white;
+  border-radius: 10px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+  padding: 15px;
+  transition: transform 0.4s ease;
+  opacity: 0;
+  transform: translateX(-60px);
+  transition: all 0.8s ease;
+}
+.box.animate {
+  opacity: 1;
+  transform: translateX(0);
+}
+.box:hover {
+  transform: translateX(10px) scale(1.03);
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.2);
+  cursor: pointer;
+}
+
+.box i {
+  font-size: 24px;
+  color: #007bff;
+  margin-right: 15px;
+}
+
+.box span {
+  font-size: 16px;
+
+}
+
+@media (max-width: 768px) {
+  .containerss {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .image-containerss,
+  .boxes {
+    flex: 1 1 100%;
+  }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+.footer-box {
+  background-color: #007bff;
+  color: white;
+  text-align: center;
+  padding: 30px 10px;
+  font-family: 'Kantumruy Pro', sans-serif;
+  position: relative;
+  z-index: 10;
+  transform: translateY(50px);
+  opacity: 0;
+  transition: all 0.8s ease;
+}
+
+.footer-box h4 {
+  margin-bottom: 10px;
+  font-size: 1.5rem;
+}
+
+.footer-links a {
+  color: #ffffff;
+  margin: 0 15px;
+  text-decoration: none;
+  font-weight: bold;
+  transition: color 0.3s;
+}
+
+.footer-links a:hover {
+  color: #ffc107;
+}
+
+/* ចលនាពេល scroll */
+.slide-up.visible {
+  transform: translateY(0);
+  opacity: 1;
+}
+
+
   </style>
 </head>
 <body>
+  <div class="container">
+    <!-- Navbar -->
+    <nav class="navbar" role="navigation" aria-label="Main Navigation">
+      <div class="logo" tabindex="0">Anrachana</div>
+      <div
+        class="menu-toggle"
+        aria-label="Toggle menu"
+        role="button"
+        tabindex="0"
+        onclick="toggleMenu()"
+        onkeypress="if(event.key==='Enter') toggleMenu()"
+      >☰</div>
+      <ul class="nav-links" id="navLinks">
+        <li><a href="#" tabindex="0" class="nav-link">Home</a></li>
+        <li><a href="#" tabindex="0" class="nav-link">About</a></li>
+        <li><a href="#" tabindex="0" class="nav-link">Services</a></li>
+        <li><a href="#" tabindex="0" class="nav-link">Contact</a></li>
+      </ul>
+    </nav>
 
-<h2>Invoice ទឹក-ភ្លើង</h2>
+    <!-- Overlay -->
+    <div id="overlay" class="overlay"></div>
 
-<label>តម្លៃទឹក (រៀល/យូនីត)</label>
-<input type="number" id="water-price" value="3000" />
+    <!-- Banner -->
+    <div class="banner" id="banner" aria-live="polite" aria-atomic="true">
+      <img src="https://picsum.photos/id/1015/800/220" alt="Mountain Landscape" class="banner-slide active slide1" />
+      <img src="https://picsum.photos/id/1024/800/220" alt="Beach View" class="banner-slide" />
+      <img src="https://picsum.photos/id/1035/800/220" alt="City Skyline" class="banner-slide" />
 
-<label>តម្លៃភ្លើង (រៀល/គីឡូវ៉ាត់)</label>
-<input type="number" id="electric-price" value="4000" />
+      <!-- Caption overlays -->
+      <div class="caption-overlay" aria-live="polite">
+        <h3>កោះភ្នំស្រស់ស្អាត</h3>
+        <button onclick="alert('Button clicked on slide 1!')">Learn More</button>
+      </div>
+      <div class="caption-overlay" style="display:none;" aria-live="polite">
+        <h3>ទេសភាពឆ្នេរមាស</h3>
+        <button onclick="alert('Button clicked on slide 2!')">Discover</button>
+      </div>
+      <div class="caption-overlay" style="display:none;" aria-live="polite">
+        <h3>ទីក្រុងស្ទុះពន្លឺ</h3>
+        <button onclick="alert('Button clicked on slide 3!')">Explore</button>
+      </div>
 
-<label>បន្ទប់</label>
-<select id="room">
-  <option value="">-- ជ្រើសបន្ទប់ --</option>
-  <option value="1">បន្ទប់ ១</option>
-  <option value="2">បន្ទប់ ២</option>
-  <option value="3">បន្ទប់ ៣</option>
-  <option value="4">បន្ទប់ ៤</option>
-</select>
+      <!-- Nav buttons -->
+      <div class="nav-buttons" aria-label="Slide navigation">
+        <button id="prevBtn" aria-label="Previous slide" tabindex="0">&#9664;</button>
+        <button id="nextBtn" aria-label="Next slide" tabindex="0">&#9654;</button>
+      </div>
+    </div>
 
-<label>ខែ</label>
-<input type="month" id="month" />
+    <!-- Content -->
+    <div class="content">
+      <h1>ស្វាគមន៍មកកាន់ Anrachana</h1>
+      <p>រូបភាពចលនាជាបន្តបន្ទាប់ បែបអាជីព និងស្អាតលើទូរស័ព្ទ។</p>
+    </div>
 
-<label>ឈ្មោះអតិថិជន</label>
-<input type="text" id="customer-name" placeholder="បញ្ចូលឈ្មោះអតិថិជន" />
+    <!-- Product Scroll -->
+    <div class="product-scroll" aria-label="Product list" tabindex="0">
+      <div class="product-item" tabindex="0" role="img" aria-label="Product 1">
+        <img src="https://picsum.photos/id/1040/140/100" alt="Product 1" />
+      <div class="product-info">
+      <button>199$</button><button>July-20205</button>
+    </div>
+      </div>
+      <div class="product-item" tabindex="0" role="img" aria-label="Product 2">
+        <img src="https://picsum.photos/id/1041/140/100" alt="Product 2" />
+      <div class="product-info">
+      <button>199$</button><button>July-20205</button>
+    </div>
+      </div>
+      <div class="product-item" tabindex="0" role="img" aria-label="Product 3">
+        <img src="https://picsum.photos/id/1042/140/100" alt="Product 3" />
+      <div class="product-info">
+      <button>199$</button><button>July-20205</button>
+    </div>
+      </div>
+      <div class="product-item" tabindex="0" role="img" aria-label="Product 3">
+        <img src="https://picsum.photos/id/1042/140/100" alt="Product 3" />
+       <div class="product-info">
+      <button>199$</button><button>July-20205</button>
+    </div>
+      </div>
+      <div class="product-item" tabindex="0" role="img" aria-label="Product 3">
+        <img src="https://picsum.photos/id/1042/140/100" alt="Product 3" />
+      <div class="product-info">
+      <button>199$</button><button>July-20205</button>
+    </div>
+      </div>
+      <div class="product-item" tabindex="0" role="img" aria-label="Product 4">
+        <img src="https://picsum.photos/id/1043/140/100" alt="Product 4" />
+      <div class="product-info">
+      <button>199$</button><button>July-20205</button>
+    </div>
+      </div>
+      <div class="product-item" tabindex="0" role="img" aria-label="Product 5">
+        <img src="https://picsum.photos/id/1044/140/100" alt="Product 5" />
+     <div class="product-info">
+      <button>199$</button><button>July-20205</button>
+    </div>
+      </div>
+   
+    </div>
+  
 
-<label>លេខទូរស័ព្ទ</label>
-<input type="tel" id="customer-phone" placeholder="បញ្ចូលលេខទូរស័ព្ទ" />
 
-<label>ទឹកចាស់</label>
-<input type="number" id="water-old" />
-<label>ទឹកថ្មី</label>
-<input type="number" id="water-new" />
-<label>ភ្លើងចាស់</label>
-<input type="number" id="electric-old" />
-<label>ភ្លើងថ្មី</label>
-<input type="number" id="electric-new" />
 
-<button onclick="saveData()">រក្សាទុក</button>
 
-<h3>ទិន្នន័យវិក្កយបត្រ</h3>
-<label>បង្ហាញតែបន្ទប់:</label>
-<select id="filter-room" onchange="loadData()">
-  <option value="">-- បង្ហាញទាំងអស់ --</option>
-  <option value="1">បន្ទប់ ១</option>
-  <option value="2">បន្ទប់ ២</option>
-  <option value="3">បន្ទប់ ៣</option>
-  <option value="4">បន្ទប់ ៤</option>
-</select>
+<!-- Rewards Section -->
+<div class="rewards-section" aria-label="Rewards Section" tabindex="0" style="background-color:#3b82f6; padding: 25px; margin-top: 30px; border-radius: 12px; display: flex; justify-content: center; gap: 25px; user-select: none;">
+  <div class="reward-item" tabindex="0" role="img" aria-label="Reward 1" style="width: 120px; text-align: center; color: white;">
+    <img src="https://picsum.photos/id/237/100/100" alt="Reward 1" style="border-radius: 50%; margin-bottom: 10px;"/>
+    <div style="font-weight: 700; font-size: 1.1rem;">រង្វាន់ទី 1</div>
+    <div style="font-size: 0.85rem; margin-top: 4px;">សម្រង់រង្វាន់ A</div>
+  </div>
+  <div class="reward-item" tabindex="0" role="img" aria-label="Reward 2" style="width: 120px; text-align: center; color: white;">
+    <img src="https://picsum.photos/id/239/100/100" alt="Reward 2" style="border-radius: 50%; margin-bottom: 10px;"/>
+    <div style="font-weight: 700; font-size: 1.1rem;">រង្វាន់ទី 2</div>
+    <div style="font-size: 0.85rem; margin-top: 4px;">សម្រង់រង្វាន់ B</div>
+  </div>
+  <div class="reward-item" tabindex="0" role="img" aria-label="Reward 3" style="width: 120px; text-align: center; color: white;">
+    <img src="https://picsum.photos/id/239/100/100" alt="Reward 3" style="border-radius: 50%; margin-bottom: 10px;"/>
+    <div style="font-weight: 700; font-size: 1.1rem;">រង្វាន់ទី 3</div>
+    <div style="font-size: 0.85rem; margin-top: 4px;">សម្រង់រង្វាន់ C</div>
+  </div>
 
-<table>
-  <thead>
-    <tr><th>បន្ទប់</th><th>ខែ</th><th>អតិថិជន</th><th>លេខទូរស័ព្ទ</th><th>លេខវិក្កយបត្រ</th></tr>
-  </thead>
-  <tbody id="data-tbody"></tbody>
-</table>
+  </div>
+
+
+
+
+
+
+
+
+
+
+
+ <div class="containers">
+    <!-- Text section -->
+    <div class="text-panel">
+      <h1>សូមស្វាគមន៍!</h1>
+      <p>អត្ថបទនេះបង្ហាញពីផលិតផលថ្មីៗរបស់យើង។</p>
+      <button>ចាប់ផ្តើម</button>
+      <button>ព័ត៌មានបន្ថែម</button>
+    </div>
+
+    <!-- Image section with overlay text -->
+    <div class="image-panel">
+      <img src="https://picsum.photos/id/237/100/100" alt="Product Image" />
+      <div class="overlay-text">
+        <h3>រូបភាពផលិតផល</h3>
+        <p>អក្សរធំ និងអក្សរតូចបង្ហាញព័ត៌មានលើរូបភាព។</p>
+      </div>
+    </div>
+  </div>
+
+<div class="image-container" role="img" aria-label="រូបភាពផ្ទៃខាងក្រោយ">
+    <!-- Left text box -->
+    <div class="text-box text-box-left">
+      <h2 style="margin:0;">អក្សរខាងឆ្វេង</h2>
+      <p style="margin:5px 0 0;">អត្ថបទខាងក្រោមអក្សរ</p>
+      <button class="small-button" type="button">ចូលមើល</button>
+    </div>
+
+    <!-- Right text boxes stacked vertically -->
+    <div class="right-boxes">
+      <div class="text-box">
+        <h3 style="margin:0;">សារ B</h3>
+        <p style="margin:5px 0 0;">អត្ថបទលើរូបភាពខាងស្តាំ</p>
+      </div>
+      <div class="text-box">
+        <h3 style="margin:0;">សារ C</h3>
+        <p style="margin:5px 0 0;">អត្ថបទបន្ត</p>
+      </div>
+    </div>
+  </div>
+
+
+
+<div class="containerss">
+    <!-- រូបភាពនៅខាងឆ្វេង -->
+    <div class="image-containerss">
+      <img src="https://static.india.com/wp-content/uploads/2025/02/Chitwan-National-Park-Nepal-1.jpg" alt="រូបភាព" style="width:250px; height:300px;" />
+    </div>
+
+    <!-- ប្រអប់ ៣ មាន icon ខាងស្តាំ -->
+    <div class="boxes">
+      <div class="box">
+        <i class="fas fa-thumbs-up"></i>
+        <span>ប្រអប់ទី១៖ ចូលចិត្ត</span>
+      </div>
+      <div class="box">
+        <i class="fas fa-comment"></i>
+        <span>ប្រអប់ទី២៖ មតិយោបល់</span>
+      </div>
+      <div class="box">
+        <i class="fas fa-share"></i>
+        <span>ប្រអប់ទី៣៖ ចែករំលែក</span>
+      </div>
+    </div>
+  </div>
+
+
+
+
+
+
+<!-- ផ្ទាំងចុងក្រោម -->
+<div class="footer-box slide-up">
+  <h4>សូមអរគុណ!</h4>
+  <div class="footer-links">
+    <a href="#about">អំពី</a>
+    <a href="mailto:youremail@example.com">ផ្ញើអ៊ីមែល</a>
+    <a href="#contact">ទំនាក់ទំនង</a>
+  </div>
+</div>
+
+
+
+
+
+
+</div>
+
+ 
+
+
+ 
+
+
+ <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+
+  <script>
+    // Toggle menu and overlay
+    const navLinks = document.getElementById('navLinks');
+    const menuToggle = document.querySelector('.menu-toggle');
+    const overlay = document.getElementById('overlay');
+
+    function toggleMenu() {
+      navLinks.classList.toggle('active');
+      overlay.classList.toggle('active');
+    }
+
+    // Auto close menu and overlay when clicking nav link
+    document.querySelectorAll('.nav-link').forEach(link => {
+      link.addEventListener('click', () => {
+        if (navLinks.classList.contains('active')) {
+          navLinks.classList.remove('active');
+          overlay.classList.remove('active');
+        }
+      });
+    });
+
+    // Auto close menu and overlay if clicking outside
+    document.addEventListener('click', (e) => {
+      const isClickInsideMenu = navLinks.contains(e.target);
+      const isClickOnToggle = menuToggle.contains(e.target);
+
+      if (!isClickInsideMenu && !isClickOnToggle && navLinks.classList.contains('active')) {
+        navLinks.classList.remove('active');
+        overlay.classList.remove('active');
+      }
+    });
+
+    // Banner slide logic
+    const slides = document.querySelectorAll(".banner-slide");
+    const captions = document.querySelectorAll(".caption-overlay");
+    let current = 0;
+    const animations = ['slide1', 'slide2', 'slide3'];
+
+    captions.forEach((caption, i) => {
+      caption.style.display = (i === 0) ? 'block' : 'none';
+    });
+
+    let slideInterval = setInterval(nextSlide, 3000);
+
+    function showSlide(index) {
+      slides[current].classList.remove('active', animations[current]);
+      captions[current].style.display = 'none';
+
+      current = index;
+
+      slides[current].classList.add('active', animations[current]);
+      captions[current].style.display = 'block';
+    }
+
+    function nextSlide() {
+      let nextIndex = (current + 1) % slides.length;
+      showSlide(nextIndex);
+    }
+
+    function prevSlide() {
+      let prevIndex = (current - 1 + slides.length) % slides.length;
+      showSlide(prevIndex);
+    }
+
+    document.getElementById('nextBtn').addEventListener('click', () => {
+      nextSlide();
+      resetInterval();
+    });
+
+    document.getElementById('prevBtn').addEventListener('click', () => {
+      prevSlide();
+      resetInterval();
+    });
+
+    function resetInterval() {
+      clearInterval(slideInterval);
+      slideInterval = setInterval(nextSlide, 3000);
+    }
+
+    // Swipe support for banner
+    let touchStartX = 0;
+    let touchEndX = 0;
+
+    const banner = document.getElementById('banner');
+
+    banner.addEventListener('touchstart', (e) => {
+      touchStartX = e.changedTouches[0].screenX;
+    });
+
+    banner.addEventListener('touchend', (e) => {
+      touchEndX = e.changedTouches[0].screenX;
+      handleGesture();
+    });
+
+    function handleGesture() {
+      const swipeThreshold = 50;
+      if (touchEndX < touchStartX - swipeThreshold) {
+        nextSlide();
+        resetInterval();
+      }
+      if (touchEndX > touchStartX + swipeThreshold) {
+        prevSlide();
+        resetInterval();
+      }
+    }
+  </script>
+<style>
+  img:hover {
+    transform: scale(1.05) rotate(1deg);
+    transition: transform 0.4s ease;
+    cursor: pointer;
+  }
+</style>
+<script>
+  const boxes = document.querySelectorAll('.box');
+
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('animate');
+        observer.unobserve(entry.target); // បញ្ឈប់សំគាល់បន្ទាប់ពី animate
+      }
+    });
+  }, {
+    threshold: 0.2 // បង្ហាញ 20% នឹងចាប់ផ្ដើម
+  });
+
+  boxes.forEach(box => observer.observe(box));
+</script>
 
 <script>
-  // Your Firebase config here
-  const firebaseConfig = {
-    apiKey: "AIzaSyBt_ScEi_StJ0wQDP-gZwMWmy5A7HqEcXE",
-    authDomain: "invoice-77616.firebaseapp.com",
-    projectId: "invoice-77616",
-    storageBucket: "invoice-77616.appspot.com",
-    messagingSenderId: "91579214593",
-    appId: "1:91579214593:web:eca7aad598915de58ec900",
-    measurementId: "G-99K8KQ02M0"
-  };
+  const footerBox = document.querySelector('.footer-box');
 
-  // Initialize Firebase
-  firebase.initializeApp(firebaseConfig);
-  const db = firebase.firestore();
-
-  function generateInvoiceNumber(room, month) {
-    const ym = month.replace('-', '');
-    const randomSuffix = Math.floor(Math.random() * 900 + 100); // random 3 digit
-    return `INV-${ym}-${room}-${randomSuffix}`;
-  }
-
-  async function saveData() {
-    const room = document.getElementById('room').value;
-    const month = document.getElementById('month').value;
-    const waterOld = parseInt(document.getElementById('water-old').value);
-    const waterNew = parseInt(document.getElementById('water-new').value);
-    const electricOld = parseInt(document.getElementById('electric-old').value);
-    const electricNew = parseInt(document.getElementById('electric-new').value);
-    const customerName = document.getElementById('customer-name').value.trim();
-    const customerPhone = document.getElementById('customer-phone').value.trim();
-
-    if (!room || !month || isNaN(waterOld) || isNaN(waterNew) || isNaN(electricOld) || isNaN(electricNew) || !customerName || !customerPhone) {
-      alert('សូមបំពេញទិន្នន័យទាំងអស់');
-      return;
-    }
-
-    const invoiceNo = generateInvoiceNumber(room, month);
-
-    try {
-      await db.collection('invoices').doc(invoiceNo).set({
-        room,
-        month,
-        waterOld,
-        waterNew,
-        electricOld,
-        electricNew,
-        customerName,
-        customerPhone,
-        invoiceNo,
-        timestamp: firebase.firestore.FieldValue.serverTimestamp()
-      });
-      alert('✅ បានរក្សាទុកទៅ Firebase!');
-      loadData();
-      clearForm();
-    } catch (error) {
-      alert('❌ កំហុស: ' + error.message);
+  function checkScrollFooter() {
+    const rect = footerBox.getBoundingClientRect();
+    const isVisible = rect.top < window.innerHeight;
+    if (isVisible) {
+      footerBox.classList.add('visible');
     }
   }
 
-  async function loadData() {
-    const tbody = document.getElementById('data-tbody');
-    tbody.innerHTML = '';
-    const filterRoom = document.getElementById('filter-room').value;
-
-    let query = db.collection('invoices').orderBy('timestamp', 'desc');
-
-    if (filterRoom) {
-      query = query.where('room', '==', filterRoom);
-    }
-
-    try {
-      const snapshot = await query.get();
-      if (snapshot.empty) {
-        tbody.innerHTML = `<tr><td colspan="5">មិនមានទិន្នន័យ</td></tr>`;
-        return;
-      }
-
-      snapshot.forEach(doc => {
-        const d = doc.data();
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-          <td>${d.room}</td>
-          <td>${d.month}</td>
-          <td>${d.customerName}</td>
-          <td>${d.customerPhone}</td>
-          <td>${d.invoiceNo}</td>
-        `;
-        tbody.appendChild(tr);
-      });
-    } catch (error) {
-      alert('❌ កំហុសក្នុងការទាញទិន្នន័យ: ' + error.message);
-    }
-  }
-
-  function clearForm() {
-    document.getElementById('room').value = '';
-    document.getElementById('month').value = '';
-    document.getElementById('water-old').value = '';
-    document.getElementById('water-new').value = '';
-    document.getElementById('electric-old').value = '';
-    document.getElementById('electric-new').value = '';
-    document.getElementById('customer-name').value = '';
-    document.getElementById('customer-phone').value = '';
-  }
-
-  window.onload = loadData;
+  window.addEventListener('scroll', checkScrollFooter);
+  window.addEventListener('load', checkScrollFooter);
 </script>
 
 </body>
